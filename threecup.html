@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three Cup Monte Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            background-color: white;
+            color: black;
+        }
+        h1 {
+            margin-top: 20px;
+            font-size: 2em;
+        }
+        .cup-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            margin-top: 50px;
+            position: relative;
+            height: 300px;
+        }
+        .cup {
+            width: 80px;
+            height: 120px;
+            background-color: black;
+            border-radius: 50% 50% 0 0;
+            position: absolute;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            cursor: pointer;
+            transform-origin: bottom center;
+            transition: transform 1s ease-in-out;
+        }
+        .cup.correct {
+            background-color: black;
+        }
+        .cup.wrong {
+            background-color: black;
+        }
+        .ball {
+            width: 30px;
+            height: 30px;
+            background-color: red;
+            border-radius: 50%;
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+        }
+        .cup.lift .ball {
+            display: block;
+        }
+        .button-container {
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            background-color: #007BFF;
+            color: white;
+            border-radius: 5px;
+            margin: 0 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        @keyframes circular-motion {
+            0% { transform: rotate(0deg) translateX(150px) rotate(0deg); }
+            25% { transform: rotate(120deg) translateX(150px) rotate(-120deg); }
+            50% { transform: rotate(240deg) translateX(150px) rotate(-240deg); }
+            100% { transform: rotate(360deg) translateX(150px) rotate(-360deg); }
+        }
+        .cup.shuffling {
+            animation: circular-motion 1.5s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <h1>Three Cup Monte</h1>
+    <p>Choose a cup to find the ball!</p>
+    <div id="game-container" class="cup-container"></div>
+    <div class="button-container">
+        <button id="shuffle-button">Shuffle Cups</button>
+        <button id="reset-button">Restart Game</button>
+    </div>
+
+    <script>
+        const gameContainer = document.getElementById('game-container');
+        const shuffleButton = document.getElementById('shuffle-button');
+        const resetButton = document.getElementById('reset-button');
+
+        let correctCup;
+
+        function generateRandomPositions() {
+            return [
+                { x: -100, y: 0 },
+                { x: 0, y: 0 },
+                { x: 100, y: 0 }
+            ];
+        }
+
+        function setupGame() {
+            gameContainer.innerHTML = '';
+            const positions = generateRandomPositions();
+
+            correctCup = Math.floor(Math.random() * 3);
+
+            for (let i = 0; i < 3; i++) {
+                const cup = document.createElement('div');
+                cup.className = 'cup';
+                cup.style.transform = `translate(${positions[i].x}px, ${positions[i].y}px)`;
+                cup.dataset.index = i;
+
+                const ball = document.createElement('div');
+                ball.className = 'ball';
+                if (i === correctCup) ball.style.display = 'none';
+                cup.appendChild(ball);
+
+                cup.onclick = () => checkCup(i, cup);
+                gameContainer.appendChild(cup);
+            }
+        }
+
+        function checkCup(index, cupElement) {
+            const ball = cupElement.querySelector('.ball');
+            if (index === correctCup) {
+                cupElement.classList.add('correct', 'lift');
+                ball.style.display = 'block';
+                alert('You found the ball! \n "You hit the nail on the head!"');
+            } else {
+                cupElement.classList.add('wrong', 'lift');
+                alert('Try again! The ball will now be revealed.');
+                revealBall();
+            }
+
+            const cups = document.querySelectorAll('.cup');
+            cups.forEach(cup => cup.onclick = null);
+        }
+
+        function revealBall() {
+            const cups = document.querySelectorAll('.cup');
+            cups.forEach((cup, index) => {
+                if (index === correctCup) {
+                    cup.classList.add('correct', 'lift');
+                    const ball = cup.querySelector('.ball');
+                    ball.style.display = 'block';
+                }
+            });
+        }
+
+        function shuffleCups() {
+            const cups = Array.from(document.querySelectorAll('.cup'));
+            cups.forEach(cup => cup.classList.add('shuffling'));
+
+            setTimeout(() => {
+                cups.forEach(cup => cup.classList.remove('shuffling'));
+
+                const positions = generateRandomPositions();
+                for (let i = 0; i < cups.length; i++) {
+                    cups[i].style.transform = `translate(${positions[i].x}px, ${positions[i].y}px)`;
+                }
+            }, 1500);
+        }
+
+        shuffleButton.onclick = shuffleCups;
+        resetButton.onclick = setupGame;
+
+        setupGame();
+    </script>
+</body>
+</html>
